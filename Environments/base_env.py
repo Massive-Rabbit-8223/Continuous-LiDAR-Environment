@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from .lidar_visualizer_patrick import BeamDataVisualizer
 
 
 class BaseAFLEnv():
@@ -144,22 +143,3 @@ class BaseAFLEnv():
         )
 
         return (intersection_points, rays, magnitudes, self.current_pose)
-    
-    def plot_env(self, text, samples, data_dict, plot_beams, beam_alpha):
-        image_path = ""
-
-        bdv_gt = BeamDataVisualizer()
-        fig_env_pred = bdv_gt.visualize_loss_environment(
-            text, 
-            data_dict['x'], 
-            data_dict['y'], 
-            data_dict['t'], 
-            data_dict['si'], 
-            image_path, 
-            samples, 
-            "mse_loss", 
-            True,
-            plot_beams=plot_beams,
-            beam_alpha=beam_alpha,
-            connected=True
-        )

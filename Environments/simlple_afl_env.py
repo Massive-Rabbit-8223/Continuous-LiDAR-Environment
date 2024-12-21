@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from .base_env import BaseAFLEnv
+from .beam_data_visualizer import BeamDataVisualizer
 
 # TODO: Create Parent class containing all the basic mechanics like checking collision and computing beamreading
 # TODO: Get initial state of the world (pose, beamreading) and also make use of it in the reset function
@@ -16,12 +17,12 @@ class SimpleAFLEnv(BaseAFLEnv):
 
         super().__init__(self.starting_pose)
         
-        world_bounds = np.array([[
+        self.world_bounds = np.array([[
             [1, 1], 
             [10, 10]
         ]])
 
-        obstacle_bounds = np.array([
+        self.obstacle_bounds = np.array([
             # Obstacle 1
             [[ 8.91985225,  3.84545202],
             [10.66074355,  4.99807121]],
@@ -54,8 +55,11 @@ class SimpleAFLEnv(BaseAFLEnv):
             [2.69494379, 5.59028893]]
         ])
 
+        self.obstacles_line_segments = self._get_line_segments_from_rectangles(self.obstacle_bounds)[:,0,:].reshape(len(self.obstacle_bounds),4,2)
+        self.world_line_segments = self._get_line_segments_from_rectangles(self.world_bounds)[:,0,:]
+
         total_obstacles = np.concatenate(
-            [world_bounds, obstacle_bounds], 
+            [self.world_bounds, self.obstacle_bounds], 
             axis=0
         )
 
@@ -114,3 +118,22 @@ class SimpleAFLEnv(BaseAFLEnv):
         pose_2[2] = theta_2
 
         return pose_2
+    
+    def plot_env(self, text, samples, data_dict, plot_beams, beam_alpha):
+        image_path = ""
+
+        bdv_gt = BeamDataVisualizer(self.world_line_segments, self.obstacles_line_segments)
+        fig_env_pred = bdv_gt.visualize_loss_environment(
+            text, 
+            data_dict['x'], 
+            data_dict['y'], 
+            data_dict['t'], 
+            data_dict['si'], 
+            image_path, 
+            samples, 
+            "mse_loss", 
+            True,
+            plot_beams=plot_beams,
+            beam_alpha=beam_alpha,
+            connected=True
+        )
